@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <title>index</title>
+    <style>
+    </style>
+</head>
+
+<body>
+    <div id="main" style="width: 528px;height:344px;"></div>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/echarts.min.js"></script>
+
+    <script>
+        var myChart = echarts.init(document.getElementById('main'));
+        myChart.showLoading();
+        var uploadedDataURL = "./json/taihuxincheng.json";
+        // 系列对应的图标
+        var paoGreen = "./img/map_pao1.png";
+        var paoBlue = "./img/map_pao2.png";
+        // 地图填充背景，不能直接用路径
+        var mapBg = document.createElement("img");
+        mapBg.src = "./img/bg-color.png";
+
+        $.getJSON(uploadedDataURL, function (geoJson) {
+            echarts.registerMap('test', geoJson);
+            myChart.hideLoading();
+            var option = {
+                backgroundColor:'#ccc',
+                geo: {
+                    map: 'test',
+                    roam: false,
+                    center: [120.603, 31.102], //设置地图中心
+                    label: {
+                        emphasis: {
+                            show: false
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            color: {
+                                image: mapBg, // 地图填充背景图（HtmlDomElement）
+                                repeat: 'repeat'
+                            },
+                            borderColor: '#a2bcd1',
+                            borderWidth: 1,
+                            shadowBlur: 30,
+                            shadowColor: 'rgba(0,0,0, 0.8)',
+                            shadowOffsetY: 20,
+                            shadowOffsetX: 10
+                        },
+                        emphasis: {
+                            color: {
+                                image: mapBg,
+                                repeat: 'repeat'
+                            },
+                            borderColor: '#a2bcd1',
+                            borderWidth: 1,
+                            shadowBlur: 30,
+                            shadowColor: 'rgba(0,0,0, 0.8)',
+                            shadowOffsetY: 20,
+                            shadowOffsetX: 10
+                        }
+                    },
+                    // 不响应鼠标操作
+                    silent: true
+                },
+                //鼠标悬停提示信息
+                tooltip: {
+                    formatter: function (params) {
+                        return params.seriesName + ":" + params.data.value[2];
+                    }
+                },
+                //下方提示图例
+                legend: {
+                    show: true,
+                    orient: 'vertical',
+                    left: '5%',
+                    bottom: '5%',
+                    data: ['自营厅', "合作厅"],
+                    selectedMode: 'multiple',
+                    inactiveColor: '#aaa',
+                    textStyle: {
+                        color: 'blue'
+                    },
+                    itemWidth: 15,
+                    itemHeight: 15,
+                    data: [{
+                        name: "自营厅",
+                        textStyle: {
+                            color: '#9ff575'
+                        }
+                    }, {
+                        name: "合作厅",
+                        textStyle: {
+                            color: '#3e5a8b'
+                        }
+                    }]
+                },
+                //系列列表 每个系列通过 type 决定自己的图表类型
+                series: [
+                    //设置背景地图
+                    {
+                        name: 'test',
+                        type: 'map',
+                        mapType: 'test',
+                        showLegendSymbol: false,
+                        itemStyle: {
+                            normal: {
+                                borderColor: '#389BB7',
+                                areaColor: '#000',
+                            },
+                            emphasis: {
+                                borderColor: '#389BB7',
+                                areaColor: '#000',
+                            }
+                        },
+                        tooltip: {
+                            show: false
+                        },
+                        animation: false,
+                        zlevel: -1,
+                        // 不响应鼠标操作
+                        silent: true
+                    },
+                    //设置第一个系列
+                    {
+                        name: '自营厅',
+                        type: 'scatter',
+                        coordinateSystem: 'geo',
+                        data: [{
+                                value: [120.60, 31.12, 160]
+                            },
+                            {
+                                value: [120.68, 31.07, 150]
+                            },
+                            {
+                                value: [120.56, 31.08, 150, "状况", 1]
+                            }
+                        ],
+                        symbol: 'image://' + paoGreen,
+                        symbolSize: function (val) {
+                            return val[2] / 5
+                        },
+                        zlevel: 1
+                    },
+                    //设置第二个系列
+                    {
+                        name: '合作厅',
+                        type: 'scatter',
+                        coordinateSystem: 'geo',
+                        data: [{
+                                value: [120.52, 31.04, 140]
+                            },
+                            {
+                                value: [120.64, 31.20, 100]
+                            },
+                            {
+                                value: [120.63, 31.07, 120]
+                            }
+                        ],
+                        symbol: 'image://' + paoBlue,
+                        symbolSize: function (val) {
+                            return val[2] / 6
+                        },
+                        zlevel: 1
+                    },
+                    // 设置不动的点
+                    {
+                        name: '合作厅',
+                        type: 'scatter',
+                        coordinateSystem: 'geo',
+                        data: [{
+                            value: [120.65, 31.11, 80, "状况", 2]
+                        }],
+                        symbol: 'image://' + paoBlue,
+                        symbolSize: function (val) {
+                            return val[2] / 5
+                        },
+                        label: {
+                            normal: {
+                                fontSize: 12,
+                                color: '#fff',
+                                show: true,
+                                position: ['50%', '50%'],
+                                formatter: function (params) {
+                                    return [
+                                        '{a|' + params.data.value[3] + '}',
+                                        '{b|信息：' + '123' + '}',
+                                        '{b|信息：' + '123' + '}'
+                                    ].join("\n");
+                                },
+                                lineHeight: 20,
+                                align: 'center',
+                                verticalAlign: 'middle',
+                                rich: {
+                                    a: {
+                                        fontSize: 14,
+                                        lineHeight: 20,
+                                        color: '#dec615'
+                                    },
+                                    b: {
+                                        lineHeight: 14,
+                                        color: '#bfbfc2'
+                                    }
+                                }
+                            }
+                        },
+                        zlevel: 1
+                    }
+                ]
+            }
+
+            myChart.setOption(option);
+
+            //气泡闪烁
+            function bubbleBlur(speed) {
+                console.log("必须设置option后再调用")
+                var min = 0.5;
+                var symbolSize = 3; //圆的缩放比例
+                var _speed = 0.01 * (_speed || 1);
+                var _scale = 1;
+
+                setInterval(function () {
+                    var a = 1;
+                    var parsent = 0;
+                    // 缩放比例为1-min,到最小时，会增大。
+                    _scale >= 1 || _scale <= min ? _speed = -_speed : 0;
+                    _scale += _speed;
+
+                    // 根据系列的格式动态添加变化。
+                    var length = myChart.getOption().series.length;
+                    var series = [{}]; // series的第一个对象为底层地图,不要更改
+
+                    function getSymbolSize(val) {
+                        if (a % 2 === 0) {
+                            parsent = _scale
+                        } else {
+                            parsent = (1 - _scale) + min
+                        }
+                        a++;
+
+                        // val[4]值为1是，为系列1选中状态
+                        if (val[4] && +val[4] === 1) {
+                            return 0;
+
+                            // val[4]值为2是，为系列2选中状态
+                        } else if (val[4] && +val[4] === 2) {
+                            return val[2] / 10 * symbolSize;
+
+                            // 都不是就闪烁
+                        } else {
+                            return val[2] / 10 * symbolSize * parsent;
+                        };
+                    };
+
+                    for (var i = 1; i < length; i++) {
+                        series.push({
+                            symbolSize: getSymbolSize
+                        })
+                    }
+                    myChart.setOption({
+                        series: series
+                    });
+                }, 30);
+            }
+            bubbleBlur();
+            // return {
+            //     map: myChart,
+            //     bubbleBlur: bubbleBlur
+            // };
+
+        });
+    </script>
+</body>
+
+</html>

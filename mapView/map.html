@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <title>index</title>
+    <style>
+        body {
+            background-color: rgb(31, 24, 92);
+            color: #05C3F9;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main" style="width: 528px;height:344px;"></div>
+    <script src="../js/jquery.js"></script>
+    <script src="../js/echarts.min.js"></script>
+
+    <script>
+        var myChart = echarts.init(document.getElementById('main'));
+        myChart.showLoading();
+
+        var data = [{
+                name: '滨湖街道',
+                value: 135
+            },
+            {
+                name: '黎里镇',
+                value: 456
+            },
+            {
+                name: '七都镇',
+                value: 146
+            },
+            {
+                name: '平望镇',
+                value: 12
+            },
+            {
+                name: '盛泽镇',
+                value: 33
+            },
+            {
+                name: '松陵镇',
+                value: 3454
+            },
+            {
+                name: '桃源镇',
+                value: 666
+            },
+            {
+                name: '同里镇',
+                value: 5587
+            },
+            {
+                name: '震泽镇',
+                value: 698
+            }
+
+        ];
+        var geoCoordMap = {
+            '滨湖街道': [120.89, 28.48],
+            '黎里镇': [120.28, 29.09],
+            '平望镇': [120.93, 27.41],
+            '七都镇': [120.97, 29.51],
+            '盛泽镇': [120.81, 27.72],
+            '松陵镇': [120.12, 28.10],
+            '桃源镇': [120.04, 25.67],
+            '同里镇': [120.05, 26.88],
+            '震泽镇': [120.41, 28.03]
+        };
+        var convertData = function (data) {
+            var res = [];
+            for (var i = 0; i < data.length; i++) {
+                var geoCoord = geoCoordMap[data[i].name];
+                if (geoCoord) {
+                    res.push({
+                        name: data[i].name,
+                        value: geoCoord.concat(data[i].value)
+                    });
+                }
+            }
+            return res;
+        };
+
+        var option = {
+            title: {
+                // text: '吴江',
+                // subtext: '数据',
+                // left: 'center',
+                // textStyle: {
+                //     color: '#blue'
+                // }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}<br/>{c}(地理位置)'
+            },
+            geo: {
+                label: {
+                    emphasis: {
+                        show: false
+                    }
+                },
+                roam: true,
+                itemStyle: {
+                    normal: {
+                        areaColor: '#323c48',
+                        borderColor: '#111'
+                    },
+                    emphasis: {
+                        areaColor: '#2a333d'
+                    }
+                }
+            },
+
+            series: [{
+                    name: '吴江',
+                    type: 'map',
+                    map: 'WJ', // 自定义扩展图表类型 
+                    symbolSize: function (val) {
+                        return val[2] / 10;
+                    },
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show: true,
+                                color: '#fff',
+                                fontSize: 10,
+                            },
+                            borderColor: 'rgba(147, 235, 248, 1)',
+                            borderWidth: 1,
+                            areaColor: {
+                                type: 'radial',
+                                x: 0.5,
+                                y: 0.5,
+                                r: 0.8,
+                                colorStops: [{
+                                        offset: 0,
+                                        color: 'rgba(147, 235, 248, 0)' // 0% 处的颜色 
+                                    },
+                                    {
+                                        offset: 1,
+                                        color: 'rgba(147, 235, 248, .2)' // 100% 处的颜色 
+                                    }
+                                ],
+                                globalCoord: false // 缺省为 false 
+                            },
+                            shadowColor: 'rgba(128, 217, 248, 1)',
+                            //shadowColor: 'rgba(255, 255, 255, 1)', 
+                            shadowOffsetX: -2,
+                            shadowOffsetY: 2,
+                            shadowBlur: 10
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                color: '#fff'
+                            },
+                            areaColor: '#389BB7',
+                            borderWidth: 0
+                        }
+                    },
+                    data: convertData(data),
+                    // 自定义名称映射 
+                    nameMap: {
+                        'binhujiedao': '滨湖街道',
+                        'lili': '黎里镇',
+                        'pingwang': '平望镇',
+                        'qidu': '七都镇',
+                        'shengze': '盛泽镇',
+                        'songling': '松陵镇',
+                        'taoyuan': '桃源镇',
+                        'tongli': '同里镇',
+                        'zhenze': '震泽镇',
+                    }
+                },
+                {
+                    name: '菜市场',
+                    type: 'effectScatter',
+                    coordinateSystem: 'WJ',
+                    data: convertData(data.sort(function (a, b) {
+                        return b.value - a.value;
+                    }).slice(0, 3)),
+                    symbolSize: function (val) {
+                        return val[2] / 10;
+                    },
+                    showEffectOn: 'render',
+                    rippleEffect: {
+                        brushType: 'stroke'
+                    },
+                    hoverAnimation: true,
+                    label: {
+                        normal: {
+                            formatter: '{b}',
+                            position: 'right',
+                            show: true
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            color: '#f4e925',
+                            shadowBlur: 10,
+                            shadowColor: '#333'
+                        }
+                    },
+                    zlevel: 1
+                }
+            ]
+        };
+
+        $.get('./json/all.json', function (geoJson) {
+            myChart.hideLoading();
+            echarts.registerMap('WJ', geoJson);
+            myChart.setOption(option);
+        });
+    </script>
+
+
+</body>
+
+</html>
